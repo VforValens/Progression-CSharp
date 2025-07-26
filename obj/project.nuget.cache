@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "dgSpecHash": "3fPm2pKYFuk=",
+  "success": true,
+  "projectFilePath": "C:\\Git\\SPT\\Progression-CSharp\\ValensProgression.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\jtdur\\.nuget\\packages\\fastcloner\\3.3.8\\fastcloner.3.3.8.nupkg.sha512",
+    "C:\\Users\\jtdur\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\9.0.5\\microsoft.extensions.dependencyinjection.abstractions.9.0.5.nupkg.sha512",
+    "C:\\Users\\jtdur\\.nuget\\packages\\semanticversioning\\3.0.0\\semanticversioning.3.0.0.nupkg.sha512",
+    "C:\\Users\\jtdur\\.nuget\\packages\\sptarkov.common\\4.0.0-prerelease24\\sptarkov.common.4.0.0-prerelease24.nupkg.sha512",
+    "C:\\Users\\jtdur\\.nuget\\packages\\sptarkov.di\\4.0.0-prerelease24\\sptarkov.di.4.0.0-prerelease24.nupkg.sha512",
+    "C:\\Users\\jtdur\\.nuget\\packages\\sptarkov.server.core\\4.0.0-prerelease24\\sptarkov.server.core.4.0.0-prerelease24.nupkg.sha512",
+    "C:\\Users\\jtdur\\.nuget\\packages\\system.io.hashing\\9.0.5\\system.io.hashing.9.0.5.nupkg.sha512"
+  ],
+  "logs": []
+}

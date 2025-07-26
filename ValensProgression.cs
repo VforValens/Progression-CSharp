@@ -1,0 +1,155 @@
+using SPTarkov.DI.Annotations;
+using SPTarkov.Server.Core.DI;
+using SPTarkov.Server.Core.Models.Common;
+using SPTarkov.Server.Core.Models.Enums;
+using SPTarkov.Server.Core.Models.Spt.Config;
+using SPTarkov.Server.Core.Models.Spt.Mod;
+using SPTarkov.Server.Core.Models.Utils;
+using SPTarkov.Server.Core.Services;
+
+namespace _2EditDatabase;
+
+/// <summary>
+/// This is the replacement for the former package.json data. This is required for all mods.
+///
+/// This is where we define all the metadata associated with this mod.
+/// You don't have to do anything with it, other than fill it out.
+/// All properties must be overriden, properties you don't use may be left null.
+/// It is read by the mod loader when this mod is loaded.
+/// </summary>
+public record ModMetadata : AbstractModMetadata
+{
+    /// <summary>
+    /// Any string can be used for a modId, but it should ideally be unique and not easily duplicated
+    /// a 'bad' ID would be: "mymod", "mod1", "questmod"
+    /// It is recommended (but not mandatory) to use the reverse domain name notation,
+    /// see: https://docs.oracle.com/javase/tutorial/java/package/namingpkgs.html
+    /// </summary>
+    public override string ModGuid { get; set; } = "com.sp-tarkov.valens.progression";
+    public override string Name { get; set; } = "Valens Progression";
+    public override string Author { get; set; } = "Valens";
+    public override List<string>? Contributors { get; set; }
+    public override string Version { get; set; } = "1.0.0";
+    public override string SptVersion { get; set; } = "4.0.0";
+    public override List<string>? LoadBefore { get; set; }
+    public override List<string>? LoadAfter { get; set; }
+    public override List<string>? Incompatibilities { get; set; }
+    public override Dictionary<string, string>? ModDependencies { get; set; }
+    public override string? Url { get; set; }
+    public override bool? IsBundleMod { get; set; }
+    public override string? Licence { get; set; } = "CC-BY-NC-ND";
+}
+
+// We want to load after PostDBModLoader is complete, so we set our type priority to that, plus 1.
+[Injectable(TypePriority = OnLoadOrder.PostDBModLoader + 1)]
+public class ValensProgression(
+    ISptLogger<ValensProgression> logger, // We are injecting a logger similar to example 1, but notice the class inside <> is different
+    DatabaseService databaseService,
+    BotConfig botConfig,
+    PmcConfig pmcConfig)
+    : IOnLoad // Implement the `IOnLoad` interface so that this mod can do something
+{
+    /// <summary>
+    /// This is called when this class is loaded, the order in which it's loaded is set according to the type priority
+    /// on the [Injectable] attribute on this class. Each class can then be used as an entry point to do
+    /// things at varying times according to type priority
+    /// </summary>
+    public Task OnLoad()
+    {
+        // When SPT starts, it stores all the data found in (SPT_Data\Server\database) in memory
+        // We can use the 'databaseService' we injected to access this data. This includes files from EFT and SPT
+
+        
+        // Let's edit some globals settings to make the game easier
+        // This is a method, a chunk of code we run, ctrl+click the method to go to the code, or click it and press f12
+        // Methods are not necessary, but they help to compartmentalize code and made it easier to read/navigate
+        // Lets overwrite pmc bot generation.
+        GeneratePmcs();
+        
+        // let's write a nice log message to the server console so players know our mod has made changes
+        logger.Success("Finished Editing Database!");
+        
+        // Inform server we have finished
+        return Task.CompletedTask;
+    }
+
+    private void GeneratePmcs()
+    {
+        // Set Bot Level Delta min and max.
+        pmcConfig.BotRelativeLevelDeltaMin = 7;
+        pmcConfig.BotRelativeLevelDeltaMax = 70;
+
+        // Call changes to primary weapons.
+        PrimaryWeaponChanges();
+
+        // Call changes to the pmc config.
+        PmcConfigChanges();
+        
+    }
+
+    private void PrimaryWeaponChanges()
+    {
+        var bots = databaseService.GetBots();
+        
+        // Same as the above example, we use 'TryGetValue' to get the 'usec' bot and 'bear' bot (usec is the internal name for usec pmc's and same for bear)
+        bots.Types.TryGetValue("usec", out var usecBot);
+        bots.Types.TryGetValue("bear", out var bearBot);
+
+        // Let's make the chance to get a good backpack really high
+        usecBot.BotInventory.Equipment.TryGetValue(EquipmentSlots.FirstPrimaryWeapon, out var usecFirstPrimaryWeapon);
+        bearBot.BotInventory.Equipment.TryGetValue(EquipmentSlots.FirstPrimaryWeapon, out var bearFirstPrimaryWeapon);
+        
+        // We access the first primary weapon dictionary by key directly using square brackets, we use ItemTpl to get the item ID
+        // Alternately, we could have typed backPacks["59e763f286f7742ee57895da"] and done the same thing, ItemTpl makes it easier to read
+        usecFirstPrimaryWeapon[ItemTpl.ASSAULTRIFLE_COLT_M4A1_556X45_ASSAULT_RIFLE] = 5;
+        usecFirstPrimaryWeapon[ItemTpl.ASSAULTRIFLE_ADAR_215_556X45_CARBINE] = 5;
+
+    }
+
+    private void PmcConfigChanges()
+    {
+        var usec = botConfig.Equipment["usec"];
+        var bear = botConfig.Equipment["bear"];
+        
+        // Six total arrays of Level Range for Armor Plate Weighting.
+        // The first level range of the array [0] is level 1-14
+        usec.ArmorPlateWeighting[0].LevelRange.Min = 1;
+        usec.ArmorPlateWeighting[0].LevelRange.Max = 14;
+        bear.ArmorPlateWeighting[0].LevelRange.Min = 1;
+        bear.ArmorPlateWeighting[0].LevelRange.Max = 14;
+        
+        // The second level range of the array [1] is level 11-26
+        usec.ArmorPlateWeighting[1].LevelRange.Min = 15;
+        usec.ArmorPlateWeighting[1].LevelRange.Max = 26;
+        bear.ArmorPlateWeighting[1].LevelRange.Min = 15;
+        bear.ArmorPlateWeighting[1].LevelRange.Max = 26;
+        
+        // The third level range of the array [2] is level 27-30
+        usec.ArmorPlateWeighting[2].LevelRange.Min = 27;
+        usec.ArmorPlateWeighting[2].LevelRange.Max = 30;
+        bear.ArmorPlateWeighting[2].LevelRange.Min = 27;
+        bear.ArmorPlateWeighting[2].LevelRange.Max = 30;
+        
+        // The fourth level range of the array [3] is level 31-34
+        usec.ArmorPlateWeighting[3].LevelRange.Min = 31;
+        usec.ArmorPlateWeighting[3].LevelRange.Max = 34;
+        bear.ArmorPlateWeighting[3].LevelRange.Min = 31;
+        bear.ArmorPlateWeighting[3].LevelRange.Max = 34;
+        
+        // The fifth level range of the array [4] is level 35-38
+        usec.ArmorPlateWeighting[4].LevelRange.Min = 35;
+        usec.ArmorPlateWeighting[4].LevelRange.Max = 38;
+        bear.ArmorPlateWeighting[4].LevelRange.Min = 35;
+        bear.ArmorPlateWeighting[4].LevelRange.Max = 38;
+        
+        // The sixth level range of the array [5] is level 39-42
+        usec.ArmorPlateWeighting[5].LevelRange.Min = 39;
+        usec.ArmorPlateWeighting[5].LevelRange.Max = 42;
+        bear.ArmorPlateWeighting[5].LevelRange.Min = 39;
+        bear.ArmorPlateWeighting[5].LevelRange.Max = 42;
+            
+        
+        
+    }
+    
+}
