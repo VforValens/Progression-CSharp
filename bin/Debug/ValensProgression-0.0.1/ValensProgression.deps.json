@@ -1,0 +1,145 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v9.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v9.0": {
+      "ValensProgression/0.0.1": {
+        "dependencies": {
+          "SPTarkov.Common": "4.0.0-prerelease25",
+          "SPTarkov.DI": "4.0.0-prerelease25",
+          "SPTarkov.Server.Core": "4.0.0-prerelease25"
+        },
+        "runtime": {
+          "ValensProgression.dll": {}
+        }
+      },
+      "FastCloner/3.3.10": {
+        "runtime": {
+          "lib/net8.0/FastCloner.dll": {
+            "assemblyVersion": "3.3.10.0",
+            "fileVersion": "3.3.10.0"
+          }
+        }
+      },
+      "Microsoft.Extensions.DependencyInjection.Abstractions/9.0.7": {
+        "runtime": {
+          "lib/net9.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.725.31616"
+          }
+        }
+      },
+      "SemanticVersioning/3.0.0": {
+        "runtime": {
+          "lib/netstandard2.0/SemanticVersioning.dll": {
+            "assemblyVersion": "3.0.0.0",
+            "fileVersion": "3.0.0.0"
+          }
+        }
+      },
+      "SPTarkov.Common/4.0.0-prerelease25": {
+        "dependencies": {
+          "SemanticVersioning": "3.0.0"
+        },
+        "runtime": {
+          "lib/net9.0/SPTarkov.Common.dll": {
+            "assemblyVersion": "4.0.0.0",
+            "fileVersion": "4.0.0.0"
+          }
+        }
+      },
+      "SPTarkov.DI/4.0.0-prerelease25": {
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "9.0.7",
+          "SPTarkov.Common": "4.0.0-prerelease25"
+        },
+        "runtime": {
+          "lib/net9.0/SPTarkov.DI.dll": {
+            "assemblyVersion": "4.0.0.0",
+            "fileVersion": "4.0.0.0"
+          }
+        }
+      },
+      "SPTarkov.Server.Core/4.0.0-prerelease25": {
+        "dependencies": {
+          "FastCloner": "3.3.10",
+          "SPTarkov.DI": "4.0.0-prerelease25",
+          "System.IO.Hashing": "9.0.7"
+        },
+        "runtime": {
+          "lib/net9.0/SPTarkov.Server.Core.dll": {
+            "assemblyVersion": "4.0.0.0",
+            "fileVersion": "4.0.0.0"
+          }
+        }
+      },
+      "System.IO.Hashing/9.0.7": {
+        "runtime": {
+          "lib/net9.0/System.IO.Hashing.dll": {
+            "assemblyVersion": "9.0.0.7",
+            "fileVersion": "9.0.725.31616"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "ValensProgression/0.0.1": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "FastCloner/3.3.10": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-3Qw0IlWqsfNHep1ryRSW3J3mSz9fPOktHiinESThg9RVQTIH0FfVNoiDnSp7/byINOpSVUVAUuFAFqUxokm7BA==",
+      "path": "fastcloner/3.3.10",
+      "hashPath": "fastcloner.3.3.10.nupkg.sha512"
+    },
+    "Microsoft.Extensions.DependencyInjection.Abstractions/9.0.7": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-iPK1FxbGFr2Xb+4Y+dTYI8Gupu9pOi8I3JPuPsrogUmEhe2hzZ9LpCmolMEBhVDo2ikcSr7G5zYiwaapHSQTew==",
+      "path": "microsoft.extensions.dependencyinjection.abstractions/9.0.7",
+      "hashPath": "microsoft.extensions.dependencyinjection.abstractions.9.0.7.nupkg.sha512"
+    },
+    "SemanticVersioning/3.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-RR+8GbPQ/gjDqov/1QN1OPoUlbUruNwcL3WjWCeLw+MY7+od/ENhnkYxCfAC6rQLIu3QifaJt3kPYyP3RumqMQ==",
+      "path": "semanticversioning/3.0.0",
+      "hashPath": "semanticversioning.3.0.0.nupkg.sha512"
+    },
+    "SPTarkov.Common/4.0.0-prerelease25": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-vNtbpyfYiR/kC1NBQ2S7aItsyQh72L9ZIx/aPKx1Eb2yTO97fs3p6ihPmG8AfQ2GreuCyShn8u7NaPIMUfCopA==",
+      "path": "sptarkov.common/4.0.0-prerelease25",
+      "hashPath": "sptarkov.common.4.0.0-prerelease25.nupkg.sha512"
+    },
+    "SPTarkov.DI/4.0.0-prerelease25": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-ny47EHItBqBXPpckb4sbLLWRtoyoIFQLAtkhmEbJKmgaEt/I6BgM5EY7wD1FPnQUEbPE3sZAOukS9flxWzD4wQ==",
+      "path": "sptarkov.di/4.0.0-prerelease25",
+      "hashPath": "sptarkov.di.4.0.0-prerelease25.nupkg.sha512"
+    },
+    "SPTarkov.Server.Core/4.0.0-prerelease25": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-x9TedqLraPJgPo52WfibHiFBzx1ti8vl5cqjWfuZMaI+K7daxzjrGIc9NT47c6gdrKeLdnnBblNtFJcTYVJ6ZA==",
+      "path": "sptarkov.server.core/4.0.0-prerelease25",
+      "hashPath": "sptarkov.server.core.4.0.0-prerelease25.nupkg.sha512"
+    },
+    "System.IO.Hashing/9.0.7": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-2sMrwd/AHYipeiOwYcoqD99c4U8F2x7GalonEYxkHUvTLNzE9Pxx2lz8ygS9cOqyDsruYARZAYL5pPVFh/s3lw==",
+      "path": "system.io.hashing/9.0.7",
+      "hashPath": "system.io.hashing.9.0.7.nupkg.sha512"
+    }
+  }
+}

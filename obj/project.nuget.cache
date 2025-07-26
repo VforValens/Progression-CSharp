@@ -1,16 +1,16 @@
 {
   "version": 2,
-  "dgSpecHash": "3fPm2pKYFuk=",
+  "dgSpecHash": "9h1QfUJKgnc=",
   "success": true,
-  "projectFilePath": "C:\\Git\\SPT\\Progression-CSharp\\ValensProgression.csproj",
+  "projectFilePath": "D:\\Repos\\SPT-Csharp-Mods\\ValensProgression\\ValensProgression.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\jtdur\\.nuget\\packages\\fastcloner\\3.3.8\\fastcloner.3.3.8.nupkg.sha512",
-    "C:\\Users\\jtdur\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\9.0.5\\microsoft.extensions.dependencyinjection.abstractions.9.0.5.nupkg.sha512",
-    "C:\\Users\\jtdur\\.nuget\\packages\\semanticversioning\\3.0.0\\semanticversioning.3.0.0.nupkg.sha512",
-    "C:\\Users\\jtdur\\.nuget\\packages\\sptarkov.common\\4.0.0-prerelease24\\sptarkov.common.4.0.0-prerelease24.nupkg.sha512",
-    "C:\\Users\\jtdur\\.nuget\\packages\\sptarkov.di\\4.0.0-prerelease24\\sptarkov.di.4.0.0-prerelease24.nupkg.sha512",
-    "C:\\Users\\jtdur\\.nuget\\packages\\sptarkov.server.core\\4.0.0-prerelease24\\sptarkov.server.core.4.0.0-prerelease24.nupkg.sha512",
-    "C:\\Users\\jtdur\\.nuget\\packages\\system.io.hashing\\9.0.5\\system.io.hashing.9.0.5.nupkg.sha512"
+    "C:\\Users\\Naeka\\.nuget\\packages\\fastcloner\\3.3.10\\fastcloner.3.3.10.nupkg.sha512",
+    "C:\\Users\\Naeka\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\9.0.7\\microsoft.extensions.dependencyinjection.abstractions.9.0.7.nupkg.sha512",
+    "C:\\Users\\Naeka\\.nuget\\packages\\semanticversioning\\3.0.0\\semanticversioning.3.0.0.nupkg.sha512",
+    "C:\\Users\\Naeka\\.nuget\\packages\\sptarkov.common\\4.0.0-prerelease25\\sptarkov.common.4.0.0-prerelease25.nupkg.sha512",
+    "C:\\Users\\Naeka\\.nuget\\packages\\sptarkov.di\\4.0.0-prerelease25\\sptarkov.di.4.0.0-prerelease25.nupkg.sha512",
+    "C:\\Users\\Naeka\\.nuget\\packages\\sptarkov.server.core\\4.0.0-prerelease25\\sptarkov.server.core.4.0.0-prerelease25.nupkg.sha512",
+    "C:\\Users\\Naeka\\.nuget\\packages\\system.io.hashing\\9.0.7\\system.io.hashing.9.0.7.nupkg.sha512"
   ],
   "logs": []
 }

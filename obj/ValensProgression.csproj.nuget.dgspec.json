@@ -1,31 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Git\\SPT\\Progression-CSharp\\ValensProgression.csproj": {}
+    "D:\\Repos\\SPT-Csharp-Mods\\ValensProgression\\ValensProgression.csproj": {}
   },
   "projects": {
-    "C:\\Git\\SPT\\Progression-CSharp\\ValensProgression.csproj": {
+    "D:\\Repos\\SPT-Csharp-Mods\\ValensProgression\\ValensProgression.csproj": {
       "version": "0.0.1",
       "restore": {
-        "projectUniqueName": "C:\\Git\\SPT\\Progression-CSharp\\ValensProgression.csproj",
+        "projectUniqueName": "D:\\Repos\\SPT-Csharp-Mods\\ValensProgression\\ValensProgression.csproj",
         "projectName": "ValensProgression",
-        "projectPath": "C:\\Git\\SPT\\Progression-CSharp\\ValensProgression.csproj",
-        "packagesPath": "C:\\Users\\jtdur\\.nuget\\packages\\",
-        "outputPath": "C:\\Git\\SPT\\Progression-CSharp\\obj\\",
+        "projectPath": "D:\\Repos\\SPT-Csharp-Mods\\ValensProgression\\ValensProgression.csproj",
+        "packagesPath": "C:\\Users\\Naeka\\.nuget\\packages\\",
+        "outputPath": "D:\\Repos\\SPT-Csharp-Mods\\ValensProgression\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\jtdur\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Users\\Naeka\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -52,15 +46,15 @@
           "dependencies": {
             "SPTarkov.Common": {
               "target": "Package",
-              "version": "[4.0.0-prerelease24, )"
+              "version": "[4.0.0-prerelease25, )"
             },
             "SPTarkov.DI": {
               "target": "Package",
-              "version": "[4.0.0-prerelease24, )"
+              "version": "[4.0.0-prerelease25, )"
             },
             "SPTarkov.Server.Core": {
               "target": "Package",
-              "version": "[4.0.0-prerelease24, )"
+              "version": "[4.0.0-prerelease25, )"
             }
           },
           "imports": [
