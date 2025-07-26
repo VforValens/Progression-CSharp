@@ -37,7 +37,7 @@ public record ModMetadata : AbstractModMetadata
     public override Dictionary<string, string>? ModDependencies { get; set; }
     public override string? Url { get; set; }
     public override bool? IsBundleMod { get; set; }
-    public override string? License { get; init; } = "CC-BY-NC-ND";
+    public override string License { get; init; } = "CC-BY-NC-ND";
 }
 
 // We want to load after PostDBModLoader is complete, so we set our type priority to that, plus 1.
@@ -51,8 +51,8 @@ public class ValensProgression(
 {
     
     
-    public PmcConfig pmcConfig = configServer.GetConfig<PmcConfig>();
-    public BotConfig botConfig = configServer.GetConfig<BotConfig>();
+    private readonly PmcConfig pmcConfig = configServer.GetConfig<PmcConfig>();
+    private readonly BotConfig botConfig = configServer.GetConfig<BotConfig>();
     
     /// <summary>
     /// This is called when this class is loaded, the order in which it's loaded is set according to the type priority
@@ -61,18 +61,14 @@ public class ValensProgression(
     /// </summary>
     public Task OnLoad()
     {
-        // When SPT starts, it stores all the data found in (SPT_Data\Server\database) in memory
+        // When SPT starts, it stores all the data found in (SPT_Data\Server\database) in memory.
         // We can use the 'databaseService' we injected to access this data. This includes files from EFT and SPT
-
-
-        // Let's edit some globals settings to make the game easier
-        // This is a method, a chunk of code we run, ctrl+click the method to go to the code, or click it and press f12
-        // Methods are not necessary, but they help to compartmentalize code and made it easier to read/navigate
-        // Lets overwrite pmc bot generation.
+        
+        // Let's overwrite pmc bot generation.
         GeneratePmcs();
 
-        // let's write a nice log message to the server console so players know our mod has made changes
-        logger.Success("Finished Editing Database!");
+        // Let's write a nice log message to the server console so players know our mod has made changes
+        logger.Success("Finished Progression Setup!");
 
         // Inform server we have finished
         return Task.CompletedTask;
@@ -84,10 +80,10 @@ public class ValensProgression(
         pmcConfig.BotRelativeLevelDeltaMin = 70;
         pmcConfig.BotRelativeLevelDeltaMax = 15;
 
-        // // Call changes to primary weapons.
+        // Call changes to primary weapons.
         PrimaryWeaponChanges();
-        //
-        // // Call changes to the pmc config.
+        
+        // Call changes to the pmc config.
         PmcConfigChanges();
         
     }
@@ -107,18 +103,19 @@ public class ValensProgression(
         }
         
         // Get FirstPrimaryWeapons from each faction
-        usecBot.BotInventory.Equipment.TryGetValue(EquipmentSlots.FirstPrimaryWeapon, out var usecFirstPrimaryWeapon);
-        bearBot.BotInventory.Equipment.TryGetValue(EquipmentSlots.FirstPrimaryWeapon, out var bearFirstPrimaryWeapon);
+            usecBot.BotInventory.Equipment.TryGetValue(EquipmentSlots.FirstPrimaryWeapon,
+                out var usecFirstPrimaryWeapon);
+            bearBot!.BotInventory.Equipment.TryGetValue(EquipmentSlots.FirstPrimaryWeapon,
+                out var bearFirstPrimaryWeapon);
         
         // We access the first primary weapon dictionary by key directly using square brackets, we use ItemTpl to get the item ID
         // Alternately, we could have typed backPacks["59e763f286f7742ee57895da"] and done the same thing, ItemTpl makes it easier to read
-        // ItemTpl makes it easier to read but worse for customization in json format
+        // ItemTpl makes it easier to read but worse for customization in JSON format
         
-        usecFirstPrimaryWeapon[ItemTpl.ASSAULTRIFLE_COLT_M4A1_556X45_ASSAULT_RIFLE] = 500;
+        usecFirstPrimaryWeapon![ItemTpl.ASSAULTRIFLE_COLT_M4A1_556X45_ASSAULT_RIFLE] = 500;
+        bearFirstPrimaryWeapon![ItemTpl.ASSAULTRIFLE_COLT_M4A1_556X45_ASSAULT_RIFLE] = 500;
         logger.Success(usecFirstPrimaryWeapon[ItemTpl.ASSAULTRIFLE_COLT_M4A1_556X45_ASSAULT_RIFLE].ToString());
-
-
-
+        
     }
 
     private void PmcConfigChanges()
