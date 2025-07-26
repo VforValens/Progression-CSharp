@@ -1,5 +1,8 @@
-﻿using SPTarkov.DI.Annotations;
+﻿using System.Reflection;
+using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.DI;
+using SPTarkov.Server.Core.Helpers;
+using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Enums;
 using SPTarkov.Server.Core.Models.Spt.Config;
 using SPTarkov.Server.Core.Models.Spt.Mod;
@@ -26,6 +29,7 @@ public record ModMetadata : AbstractModMetadata
     /// see: https://docs.oracle.com/javase/tutorial/java/package/namingpkgs.html
     /// </summary>
     public override string ModGuid { get; init; } = "com.sp-tarkov.valens.progression";
+
     public override string Name { get; init; } = "Valens Progression";
     public override string Author { get; init; } = "Valens";
     public override List<string>? Contributors { get; set; }
@@ -46,14 +50,15 @@ public class ValensProgression(
     ISptLogger<ValensProgression>
         logger, // We are injecting a logger similar to example 1, but notice the class inside <> is different
     DatabaseService databaseService,
-    ConfigServer configServer)
+    ConfigServer configServer,
+    ModHelper modHelper)
     : IOnLoad // Implement the `IOnLoad` interface so that this mod can do something
 {
-    
-    
+    public ModConfig Config { get; set; }
+
     private readonly PmcConfig pmcConfig = configServer.GetConfig<PmcConfig>();
     private readonly BotConfig botConfig = configServer.GetConfig<BotConfig>();
-    
+
     /// <summary>
     /// This is called when this class is loaded, the order in which it's loaded is set according to the type priority
     /// on the [Injectable] attribute on this class. Each class can then be used as an entry point to do
@@ -61,9 +66,15 @@ public class ValensProgression(
     /// </summary>
     public Task OnLoad()
     {
+        // This will get us the full path to the mod, e.g. C:\spt\user\mods\5ReadCustomJsonConfig-0.0.1
+        var pathToMod = modHelper.GetAbsolutePathToModFolder(Assembly.GetExecutingAssembly());
+
+        // We give the path to the mod folder and the file we want to get, giving us the config, supply the files 'type' between the diamond brackets
+        Config = modHelper.GetJsonDataFromFile<ModConfig>(pathToMod, "config.json");
+
         // When SPT starts, it stores all the data found in (SPT_Data\Server\database) in memory.
         // We can use the 'databaseService' we injected to access this data. This includes files from EFT and SPT
-        
+
         // Let's overwrite pmc bot generation.
         GeneratePmcs();
 
@@ -82,16 +93,15 @@ public class ValensProgression(
 
         // Call changes to primary weapons.
         PrimaryWeaponChanges();
-        
+
         // Call changes to the pmc config.
         PmcConfigChanges();
-        
     }
 
     private void PrimaryWeaponChanges()
     {
         var bots = databaseService.GetBots();
-        
+
         // Same as the above example, we use 'TryGetValue' to get the 'usec' bot and 'bear' bot (usec is the internal name for usec pmc's and same for bear)
         bots.Types.TryGetValue("usec", out var usecBot);
         bots.Types.TryGetValue("bear", out var bearBot);
@@ -101,21 +111,34 @@ public class ValensProgression(
             logger.Success("we fucked up");
             return;
         }
-        
+
         // Get FirstPrimaryWeapons from each faction
-            usecBot.BotInventory.Equipment.TryGetValue(EquipmentSlots.FirstPrimaryWeapon,
-                out var usecFirstPrimaryWeapon);
-            bearBot!.BotInventory.Equipment.TryGetValue(EquipmentSlots.FirstPrimaryWeapon,
-                out var bearFirstPrimaryWeapon);
-        
+        usecBot.BotInventory.Equipment.TryGetValue(EquipmentSlots.FirstPrimaryWeapon,
+            out var usecFirstPrimaryWeapon);
+        bearBot!.BotInventory.Equipment.TryGetValue(EquipmentSlots.FirstPrimaryWeapon,
+            out var bearFirstPrimaryWeapon);
+
         // We access the first primary weapon dictionary by key directly using square brackets, we use ItemTpl to get the item ID
         // Alternately, we could have typed backPacks["59e763f286f7742ee57895da"] and done the same thing, ItemTpl makes it easier to read
         // ItemTpl makes it easier to read but worse for customization in JSON format
-        
-        usecFirstPrimaryWeapon![ItemTpl.ASSAULTRIFLE_COLT_M4A1_556X45_ASSAULT_RIFLE] = 500;
-        bearFirstPrimaryWeapon![ItemTpl.ASSAULTRIFLE_COLT_M4A1_556X45_ASSAULT_RIFLE] = 500;
+        logger.Error(usecFirstPrimaryWeapon.Count.ToString());
+
+        usecFirstPrimaryWeapon.Clear();
+
+        logger.Error(usecFirstPrimaryWeapon.Count.ToString());
+
+        foreach (var weapon in Config.pmcEquipment.FirstPrimaryWeapon)
+        {
+            usecFirstPrimaryWeapon[weapon.Key] = weapon.Value;
+            bearFirstPrimaryWeapon[weapon.Key] = weapon.Value;
+            logger.Success($"Altered weapon {weapon.Key} with value {weapon.Value}");
+        }
+
+        logger.Error(usecFirstPrimaryWeapon.Count.ToString());
+
+        // usecFirstPrimaryWeapon![ItemTpl.ASSAULTRIFLE_COLT_M4A1_556X45_ASSAULT_RIFLE] = 500;
+        // bearFirstPrimaryWeapon![ItemTpl.ASSAULTRIFLE_COLT_M4A1_556X45_ASSAULT_RIFLE] = 500;
         logger.Success(usecFirstPrimaryWeapon[ItemTpl.ASSAULTRIFLE_COLT_M4A1_556X45_ASSAULT_RIFLE].ToString());
-        
     }
 
     private void PmcConfigChanges()
@@ -127,7 +150,7 @@ public class ValensProgression(
             logger.Success("pmc is null check botconfig");
             return;
         }
-        
+
         // Six total arrays of Level Range for Armor Plate Weighting.
         // The first level range of the array [0] is level 1-14
         if (pmc.ArmorPlateWeighting == null)
@@ -135,7 +158,7 @@ public class ValensProgression(
             logger.Success("ArmorPlateWeighting is missing. Check botconfig");
             return;
         }
-        
+
         pmc.ArmorPlateWeighting[0].LevelRange.Min = 1;
         pmc.ArmorPlateWeighting[0].LevelRange.Max = 14;
 
@@ -163,5 +186,15 @@ public class ValensProgression(
         pmc.ArmorPlateWeighting[5].LevelRange.Min = 39;
         pmc.ArmorPlateWeighting[5].LevelRange.Max = 42;
     }
-    
+}
+
+// This class should represent your config structure
+public class ModConfig
+{
+    public Equipment pmcEquipment { get; set; }
+
+    public class Equipment
+    {
+        public Dictionary<MongoId, int> FirstPrimaryWeapon { get; set; }
+    }
 }
