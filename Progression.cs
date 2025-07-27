@@ -4,7 +4,9 @@ using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.DI;
 using SPTarkov.Server.Core.Helpers;
 using SPTarkov.Server.Core.Models.Common;
+using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Enums;
+using SPTarkov.Server.Core.Models.Spt.Bots;
 using SPTarkov.Server.Core.Models.Spt.Config;
 using SPTarkov.Server.Core.Models.Spt.Mod;
 using SPTarkov.Server.Core.Models.Utils;
@@ -55,7 +57,11 @@ public class ValensProgression(
     ModHelper modHelper)
     : IOnLoad // Implement the `IOnLoad` interface so that this mod can do something
 {
-    private ModConfig Config { get; set; }
+    private ModConfig _config { get; set; }
+
+    private Bots _bots { get; set; }
+    private BotType _usecBot { get; set; }
+    private BotType _bearBot { get; set; }
 
     private readonly PmcConfig _pmcConfig = configServer.GetConfig<PmcConfig>();
     private readonly BotConfig _botConfig = configServer.GetConfig<BotConfig>();
@@ -69,8 +75,17 @@ public class ValensProgression(
     {
         var pathToMod = modHelper.GetAbsolutePathToModFolder(Assembly.GetExecutingAssembly());
 
-        Config = modHelper.GetJsonDataFromFile<ModConfig>(pathToMod, "config.json");
+        _config = modHelper.GetJsonDataFromFile<ModConfig>(pathToMod, "config.json");
 
+        GetBotInfo();
+        
+        if (_usecBot == null || _bearBot == null)
+        {
+            logger.Error("failed to retrieve usec or bot type from bot types");
+            logger.Error("Failed to load Valens Progression. Stopped any further code changes");
+            return Task.CompletedTask;
+        }
+        
         GeneratePmcs();
 
         // Let's write a nice log message to the server console so players know our mod has made changes
@@ -78,6 +93,23 @@ public class ValensProgression(
 
         // Inform server we have finished
         return Task.CompletedTask;
+    }
+
+    private void GetBotInfo()
+    {
+        _bots = databaseService.GetBots();
+
+        // Same as the above example, we use 'TryGetValue' to get the 'usec' bot and 'bear' bot (usec is the internal name for usec pmc's and same for bear)
+        _bots.Types.TryGetValue("usec", out var usecBot);
+        _bots.Types.TryGetValue("bear", out var bearBot);
+        if (usecBot == null || bearBot == null)
+        {
+            logger.Error("failed to retrieve usec or bot type from bot types");
+            return;
+        }
+        
+        _usecBot = usecBot;
+        _bearBot = bearBot;
     }
 
     private void GeneratePmcs()
@@ -89,37 +121,56 @@ public class ValensProgression(
         // Call changes to PMC equipment
         PmcEquipmentChanges();
 
+        PmcAmmoWeighting();
+
         // Call changes to the pmc config.
         PmcConfigChanges();
     }
 
+    private void PmcAmmoWeighting()
+    {
+        foreach (var ammoType in _config.pmcAmmo.GetAllPropsAsDict())
+        {
+            // AmmoType.Key is name of ammo
+            // AmmoType.Value is mongoid + double
+            // if ammotype is not in correct format skip
+            if (ammoType.Value is not Dictionary<MongoId, double> ammo)
+            {
+                logger.Error("couldn't parse ammo details");
+                continue;
+            }
+            // Find matching ammo type to bot
+            _usecBot.BotInventory.Ammo.TryGetValue(ammoType.Key, out var botAmmo);
+
+            if (botAmmo is null)
+            {
+                logger.Error($" UsecBot or BearBot is missing ammo type {ammoType.Key}");
+                continue;
+            }
+
+            botAmmo.Clear();
+            foreach (var ourAmmo in ammo)
+            {
+                botAmmo[ourAmmo.Key] = ourAmmo.Value;
+            }
+        }
+    }
+
     private void PmcEquipmentChanges()
     {
-        var bots = databaseService.GetBots();
-
-        // Same as the above example, we use 'TryGetValue' to get the 'usec' bot and 'bear' bot (usec is the internal name for usec pmc's and same for bear)
-        bots.Types.TryGetValue("usec", out var usecBot);
-        bots.Types.TryGetValue("bear", out var bearBot);
-
-        if (usecBot == null || bearBot == null)
-        {
-            logger.Error("usec or bear bot type is missing");
-            return;
-        }
-
-        foreach (var equipmentSlot in Config.pmcEquipment.GetAllPropsAsDict())
+        foreach (var equipmentSlot in _config.pmcEquipment.GetAllPropsAsDict())
         {
             Enum.TryParse(equipmentSlot.Key, out EquipmentSlots matchedSlot);
 
-            if (equipmentSlot.Value is not Dictionary<MongoId, int> equipment)
+            if (equipmentSlot.Value is not Dictionary<MongoId, double> equipment)
             {
                 logger.Error("couldn't parse equipment details");
                 continue;
             }
             
             // Get Requested Equipmentslot
-            usecBot.BotInventory.Equipment.TryGetValue(matchedSlot, out var usecEquipmentSlot);
-            bearBot.BotInventory.Equipment.TryGetValue(matchedSlot, out var bearEquipmentSlot);
+            _usecBot.BotInventory.Equipment.TryGetValue(matchedSlot, out var usecEquipmentSlot);
+            _bearBot.BotInventory.Equipment.TryGetValue(matchedSlot, out var bearEquipmentSlot);
 
             usecEquipmentSlot.Clear();
             bearEquipmentSlot.Clear();
@@ -129,7 +180,7 @@ public class ValensProgression(
                 usecEquipmentSlot[jsonEquipment.Key] = jsonEquipment.Value;
                 bearEquipmentSlot[jsonEquipment.Key] = jsonEquipment.Value;
             }
-            logger.Success($"Adjusted {matchedSlot.ToString()} values");
+            logger.Warning($"Adjusted {matchedSlot.ToString()} values");
         }
     }
     
@@ -190,42 +241,42 @@ public class ModConfig
     
     public class Equipment
     {
-        public Dictionary<MongoId, int> FirstPrimaryWeapon { get; set; }
-        public Dictionary<MongoId, int> Holster { get; set; }
-        public Dictionary<MongoId, int> Backpack { get; set; }
-        public Dictionary<MongoId, int> ArmorVest { get; set; }
-        public Dictionary<MongoId, int> Eyewear { get; set; }
-        public Dictionary<MongoId, int> FaceCover { get; set; }
-        public Dictionary<MongoId, int> Headwear { get; set; }
-        public Dictionary<MongoId, int> Earpiece { get; set; }
-        public Dictionary<MongoId, int> TacticalVest { get; set; }
-        public Dictionary<MongoId, int> ArmBand { get; set; }
+        public Dictionary<MongoId, double> FirstPrimaryWeapon { get; set; }
+        public Dictionary<MongoId, double> Holster { get; set; }
+        public Dictionary<MongoId, double> ArmorVest { get; set; }
+        public Dictionary<MongoId, double> Backpack { get; set; }
+        public Dictionary<MongoId, double> Eyewear { get; set; }
+        public Dictionary<MongoId, double> FaceCover { get; set; }
+        public Dictionary<MongoId, double> Headwear { get; set; }
+        public Dictionary<MongoId, double> Earpiece { get; set; }
+        public Dictionary<MongoId, double> TacticalVest { get; set; }
+        public Dictionary<MongoId, double> ArmBand { get; set; }
     }
 
     public class Ammo
     {
-        public Dictionary<MongoId, int> Caliber40x46 { get; set; }
-        public Dictionary<MongoId, int> Caliber127x55 { get; set; }
-        public Dictionary<MongoId, int> Caliber86x70 { get; set; }
-        public Dictionary<MongoId, int> Caliber762x54R { get; set; }
-        public Dictionary<MongoId, int> Caliber762x51 { get; set; }
-        public Dictionary<MongoId, int> Caliber762x39 { get; set; }
-        public Dictionary<MongoId, int> Caliber762x35 { get; set; }
-        public Dictionary<MongoId, int> Caliber762x25TT { get; set; }
-        public Dictionary<MongoId, int> Caliber68x51 { get; set; }
-        public Dictionary<MongoId, int> Caliber366TKM { get; set; }
-        public Dictionary<MongoId, int> Caliber556x45NATO { get; set; }
-        public Dictionary<MongoId, int> Caliber545x39 { get; set; }
-        public Dictionary<MongoId, int> Caliber57x280 { get; set; }
-        public Dictionary<MongoId, int> Caliber46x30 { get; set; }
-        public Dictionary<MongoId, int> Caliber9x18PM { get; set; }
-        public Dictionary<MongoId, int> Caliber9x19PARA { get; set; }
-        public Dictionary<MongoId, int> Caliber9x21 { get; set; }
-        public Dictionary<MongoId, int> Caliber9x39 { get; set; }
-        public Dictionary<MongoId, int> Caliber9x33R { get; set; }
-        public Dictionary<MongoId, int> Caliber1143x23ACP { get; set; }
-        public Dictionary<MongoId, int> Caliber12g { get; set; }
-        public Dictionary<MongoId, int> Caliber23x75 { get; set; }
+        public Dictionary<MongoId, double> Caliber40x46 { get; set; }
+        public Dictionary<MongoId, double> Caliber127x55 { get; set; }
+        public Dictionary<MongoId, double> Caliber86x70 { get; set; }
+        public Dictionary<MongoId, double> Caliber762x54R { get; set; }
+        public Dictionary<MongoId, double> Caliber762x51 { get; set; }
+        public Dictionary<MongoId, double> Caliber762x39 { get; set; }
+        public Dictionary<MongoId, double> Caliber762x35 { get; set; }
+        public Dictionary<MongoId, double> Caliber762x25TT { get; set; }
+        public Dictionary<MongoId, double> Caliber68x51 { get; set; }
+        public Dictionary<MongoId, double> Caliber366TKM { get; set; }
+        public Dictionary<MongoId, double> Caliber556x45NATO { get; set; }
+        public Dictionary<MongoId, double> Caliber545x39 { get; set; }
+        public Dictionary<MongoId, double> Caliber57x28 { get; set; }
+        public Dictionary<MongoId, double> Caliber46x30 { get; set; }
+        public Dictionary<MongoId, double> Caliber9x18PM { get; set; }
+        public Dictionary<MongoId, double> Caliber9x19PARA { get; set; }
+        public Dictionary<MongoId, double> Caliber9x21 { get; set; }
+        public Dictionary<MongoId, double> Caliber9x39 { get; set; }
+        public Dictionary<MongoId, double> Caliber9x33R { get; set; }
+        public Dictionary<MongoId, double> Caliber1143x23ACP { get; set; }
+        public Dictionary<MongoId, double> Caliber12g { get; set; }
+        public Dictionary<MongoId, double> Caliber23x75 { get; set; }
     }
 }
 
