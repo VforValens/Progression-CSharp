@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using SPTarkov.Common.Extensions;
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.DI;
 using SPTarkov.Server.Core.Helpers;
@@ -54,10 +55,10 @@ public class ValensProgression(
     ModHelper modHelper)
     : IOnLoad // Implement the `IOnLoad` interface so that this mod can do something
 {
-    public ModConfig Config { get; set; }
+    private ModConfig Config { get; set; }
 
-    private readonly PmcConfig pmcConfig = configServer.GetConfig<PmcConfig>();
-    private readonly BotConfig botConfig = configServer.GetConfig<BotConfig>();
+    private readonly PmcConfig _pmcConfig = configServer.GetConfig<PmcConfig>();
+    private readonly BotConfig _botConfig = configServer.GetConfig<BotConfig>();
 
     /// <summary>
     /// This is called when this class is loaded, the order in which it's loaded is set according to the type priority
@@ -66,20 +67,14 @@ public class ValensProgression(
     /// </summary>
     public Task OnLoad()
     {
-        // This will get us the full path to the mod, e.g. C:\spt\user\mods\5ReadCustomJsonConfig-0.0.1
         var pathToMod = modHelper.GetAbsolutePathToModFolder(Assembly.GetExecutingAssembly());
 
-        // We give the path to the mod folder and the file we want to get, giving us the config, supply the files 'type' between the diamond brackets
         Config = modHelper.GetJsonDataFromFile<ModConfig>(pathToMod, "config.json");
 
-        // When SPT starts, it stores all the data found in (SPT_Data\Server\database) in memory.
-        // We can use the 'databaseService' we injected to access this data. This includes files from EFT and SPT
-
-        // Let's overwrite pmc bot generation.
         GeneratePmcs();
 
         // Let's write a nice log message to the server console so players know our mod has made changes
-        logger.Success("Finished Progression Setup!");
+        logger.Success("Finished Loading Valens Progression!");
 
         // Inform server we have finished
         return Task.CompletedTask;
@@ -88,17 +83,17 @@ public class ValensProgression(
     private void GeneratePmcs()
     {
         // Set Bot Level Delta min and max.
-        pmcConfig.BotRelativeLevelDeltaMin = 70;
-        pmcConfig.BotRelativeLevelDeltaMax = 15;
+        _pmcConfig.BotRelativeLevelDeltaMin = 70;
+        _pmcConfig.BotRelativeLevelDeltaMax = 15;
 
-        // Call changes to primary weapons.
-        PrimaryWeaponChanges();
+        // Call changes to PMC equipment
+        PmcEquipmentChanges();
 
         // Call changes to the pmc config.
         PmcConfigChanges();
     }
 
-    private void PrimaryWeaponChanges()
+    private void PmcEquipmentChanges()
     {
         var bots = databaseService.GetBots();
 
@@ -106,44 +101,41 @@ public class ValensProgression(
         bots.Types.TryGetValue("usec", out var usecBot);
         bots.Types.TryGetValue("bear", out var bearBot);
 
-        if (usecBot == null)
+        if (usecBot == null || bearBot == null)
         {
-            logger.Success("we fucked up");
+            logger.Error("usec or bear bot type is missing");
             return;
         }
 
-        // Get FirstPrimaryWeapons from each faction
-        usecBot.BotInventory.Equipment.TryGetValue(EquipmentSlots.FirstPrimaryWeapon,
-            out var usecFirstPrimaryWeapon);
-        bearBot!.BotInventory.Equipment.TryGetValue(EquipmentSlots.FirstPrimaryWeapon,
-            out var bearFirstPrimaryWeapon);
-
-        // We access the first primary weapon dictionary by key directly using square brackets, we use ItemTpl to get the item ID
-        // Alternately, we could have typed backPacks["59e763f286f7742ee57895da"] and done the same thing, ItemTpl makes it easier to read
-        // ItemTpl makes it easier to read but worse for customization in JSON format
-        logger.Error(usecFirstPrimaryWeapon.Count.ToString());
-
-        usecFirstPrimaryWeapon.Clear();
-
-        logger.Error(usecFirstPrimaryWeapon.Count.ToString());
-
-        foreach (var weapon in Config.pmcEquipment.FirstPrimaryWeapon)
+        foreach (var equipmentSlot in Config.pmcEquipment.GetAllPropsAsDict())
         {
-            usecFirstPrimaryWeapon[weapon.Key] = weapon.Value;
-            bearFirstPrimaryWeapon[weapon.Key] = weapon.Value;
-            logger.Success($"Altered weapon {weapon.Key} with value {weapon.Value}");
+            Enum.TryParse(equipmentSlot.Key, out EquipmentSlots matchedSlot);
+
+            if (equipmentSlot.Value is not Dictionary<MongoId, int> equipment)
+            {
+                logger.Error("couldn't parse equipment details");
+                continue;
+            }
+            
+            // Get Requested Equipmentslot
+            usecBot.BotInventory.Equipment.TryGetValue(matchedSlot, out var usecEquipmentSlot);
+            bearBot.BotInventory.Equipment.TryGetValue(matchedSlot, out var bearEquipmentSlot);
+
+            usecEquipmentSlot.Clear();
+            bearEquipmentSlot.Clear();
+
+            foreach (var jsonEquipment in equipment)
+            {
+                usecEquipmentSlot[jsonEquipment.Key] = jsonEquipment.Value;
+                bearEquipmentSlot[jsonEquipment.Key] = jsonEquipment.Value;
+            }
+            logger.Success($"Adjusted {matchedSlot.ToString()} values");
         }
-
-        logger.Error(usecFirstPrimaryWeapon.Count.ToString());
-
-        // usecFirstPrimaryWeapon![ItemTpl.ASSAULTRIFLE_COLT_M4A1_556X45_ASSAULT_RIFLE] = 500;
-        // bearFirstPrimaryWeapon![ItemTpl.ASSAULTRIFLE_COLT_M4A1_556X45_ASSAULT_RIFLE] = 500;
-        logger.Success(usecFirstPrimaryWeapon[ItemTpl.ASSAULTRIFLE_COLT_M4A1_556X45_ASSAULT_RIFLE].ToString());
     }
-
+    
     private void PmcConfigChanges()
     {
-        var pmc = botConfig.Equipment["pmc"];
+        var pmc = _botConfig.Equipment["pmc"];
 
         if (pmc == null)
         {
@@ -186,15 +178,54 @@ public class ValensProgression(
         pmc.ArmorPlateWeighting[5].LevelRange.Min = 39;
         pmc.ArmorPlateWeighting[5].LevelRange.Max = 42;
     }
+    
+
 }
 
 // This class should represent your config structure
 public class ModConfig
 {
     public Equipment pmcEquipment { get; set; }
-
+    public Ammo pmcAmmo { get; set; }
+    
     public class Equipment
     {
         public Dictionary<MongoId, int> FirstPrimaryWeapon { get; set; }
+        public Dictionary<MongoId, int> Holster { get; set; }
+        public Dictionary<MongoId, int> Backpack { get; set; }
+        public Dictionary<MongoId, int> ArmorVest { get; set; }
+        public Dictionary<MongoId, int> Eyewear { get; set; }
+        public Dictionary<MongoId, int> FaceCover { get; set; }
+        public Dictionary<MongoId, int> Headwear { get; set; }
+        public Dictionary<MongoId, int> Earpiece { get; set; }
+        public Dictionary<MongoId, int> TacticalVest { get; set; }
+        public Dictionary<MongoId, int> ArmBand { get; set; }
+    }
+
+    public class Ammo
+    {
+        public Dictionary<MongoId, int> Caliber40x46 { get; set; }
+        public Dictionary<MongoId, int> Caliber127x55 { get; set; }
+        public Dictionary<MongoId, int> Caliber86x70 { get; set; }
+        public Dictionary<MongoId, int> Caliber762x54R { get; set; }
+        public Dictionary<MongoId, int> Caliber762x51 { get; set; }
+        public Dictionary<MongoId, int> Caliber762x39 { get; set; }
+        public Dictionary<MongoId, int> Caliber762x35 { get; set; }
+        public Dictionary<MongoId, int> Caliber762x25TT { get; set; }
+        public Dictionary<MongoId, int> Caliber68x51 { get; set; }
+        public Dictionary<MongoId, int> Caliber366TKM { get; set; }
+        public Dictionary<MongoId, int> Caliber556x45NATO { get; set; }
+        public Dictionary<MongoId, int> Caliber545x39 { get; set; }
+        public Dictionary<MongoId, int> Caliber57x280 { get; set; }
+        public Dictionary<MongoId, int> Caliber46x30 { get; set; }
+        public Dictionary<MongoId, int> Caliber9x18PM { get; set; }
+        public Dictionary<MongoId, int> Caliber9x19PARA { get; set; }
+        public Dictionary<MongoId, int> Caliber9x21 { get; set; }
+        public Dictionary<MongoId, int> Caliber9x39 { get; set; }
+        public Dictionary<MongoId, int> Caliber9x33R { get; set; }
+        public Dictionary<MongoId, int> Caliber1143x23ACP { get; set; }
+        public Dictionary<MongoId, int> Caliber12g { get; set; }
+        public Dictionary<MongoId, int> Caliber23x75 { get; set; }
     }
 }
+
