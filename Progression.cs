@@ -125,6 +125,9 @@ public class ValensProgression(
 
         // Call changes to the pmc config.
         PmcConfigChanges();
+        
+        // Call changes to the loyalty levels.
+        LoyaltyLevelChanges();
     }
 
     private void PmcAmmoWeighting()
@@ -139,6 +142,7 @@ public class ValensProgression(
                 logger.Error("couldn't parse ammo details");
                 continue;
             }
+            
             // Find matching ammo type to bot
             _usecBot.BotInventory.Ammo.TryGetValue(ammoType.Key, out var botAmmo);
 
@@ -229,7 +233,74 @@ public class ValensProgression(
         pmc.ArmorPlateWeighting[5].LevelRange.Min = 39;
         pmc.ArmorPlateWeighting[5].LevelRange.Max = 42;
     }
-    
+
+    private void LoyaltyLevelChanges()
+    {
+        var pmc = _botConfig.Equipment["pmc"];
+
+        // Progression Whitelist LL1
+        pmc.Randomisation.Clear();
+        
+        pmc.FaceShieldIsActiveChancePercent = 100;
+        pmc.LaserIsActiveChancePercent = 100;
+        pmc.LightIsActiveDayChancePercent = 15;
+        pmc.LightIsActiveNightChancePercent = 95;
+        pmc.NvgIsActiveChanceDayPercent = 5;
+        pmc.NvgIsActiveChanceNightPercent = 100;
+
+        var progressionWhitelistLL1 = new RandomisationDetails()
+        {
+            LevelRange = new MinMax<int>(1, 14),
+            RandomisedWeaponModSlots = [],
+            Generation = null,
+            Equipment = null,
+            WeaponMods = new Dictionary<string, double>()
+            {
+                { "mod_barrel", 5 },
+                { "mod_bipod", 10 },
+                { "mod_equipment", 5 },
+                { "mod_equipment_000", 10 },
+                { "mod_equipment_001", 5 },
+                { "mod_equipment_002", 0 },
+                { "mod_flashlight", 10 },
+                { "mod_foregrip", 10 },
+                { "mod_handguard", 10 },
+                { "mod_launcher", 0 },
+                { "mod_magazine", 10 },
+                { "mod_mount", 15 },
+                { "mod_mount_000", 10 },
+                { "mod_mount_001", 10 },
+                { "mod_mount_002", 10 },
+                { "mod_mount_003", 10 },
+                { "mod_mount_004", 10 },
+                { "mod_mount_005", 10 },
+                { "mod_mount_006", 10 },
+                { "mod_muzzle", 10 },
+                { "mod_muzzle_000", 10 },
+                { "mod_muzzle_001", 10 },
+                { "mod_nvg", 0 },
+                { "mod_pistol_grip", 10 },
+                { "mod_pistol_grip_akms", 10 },
+                { "mod_reciever", 10 },
+                { "mod_scope", 10 },
+                { "mod_scope_000", 15 },
+                { "mod_scope_001", 15 },
+                { "mod_scope_002", 15 },
+                { "mod_scope_003", 15 },
+                { "mod_tactical", 10 },
+                { "mod_tactical001", 10 },
+                { "mod_tactical002", 10 },
+                { "mod_tactical_000", 10 },
+                { "mod_tactical_001", 10 },
+                { "mod_tactical_002", 10 },
+                { "mod_tactical_003", 10 },
+                { "mod_tactical_2", 10 }
+            },
+            EquipmentMods = null,
+            NighttimeChanges = null,
+            MinimumMagazineSize = null
+        };
+    }
 
 }
 
