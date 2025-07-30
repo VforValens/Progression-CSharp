@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ValensProgression")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("0.0.1.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("0.0.1+26e045a3cb8e8fbda778e363b9290cd10f74bfc0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("0.0.1+c4314648a5b2277ab4fdbb3c10c353a9719e50bd")]
 [assembly: System.Reflection.AssemblyProductAttribute("ValensProgression")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ValensProgression")]
 [assembly: System.Reflection.AssemblyVersionAttribute("0.0.1.0")]
